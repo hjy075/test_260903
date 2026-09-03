@@ -1,7 +1,7 @@
-name: test
+name: gate05
 
 on:
-  push:
+  pull_request:
   workflow_dispatch:
 
 jobs:
@@ -14,3 +14,31 @@ jobs:
           python-version: '3.12'
       - name: Run unit tests
         run: python -m unittest discover -s tests -v
+
+  m5-gate05:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Download public M5 data
+        run: |
+          mkdir -p data/m5
+          curl -L --fail --retry 5 --retry-delay 3 \
+            'https://zenodo.org/records/12636070/files/m5-forecasting-accuracy.zip?download=1' \
+            -o /tmp/m5.zip || \
+          curl -L --fail --retry 5 --retry-delay 3 \
+            'https://github.com/KunalArora/kaggle-m5-forecasting/raw/refs/heads/master/m5-forecasting-accuracy.zip' \
+            -o /tmp/m5.zip
+          unzip -q /tmp/m5.zip -d data/m5
+      - name: Run Gate-0.5
+        run: python scripts/run_gate05.py --data-dir data/m5 --out-dir results
+      - name: Upload Gate-0.5 results
+        uses: actions/upload-artifact@v4
+        with:
+          name: gate05-results
+          path: results/
