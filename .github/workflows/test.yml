@@ -37,7 +37,7 @@ jobs:
             -o /tmp/m5.zip
           unzip -q /tmp/m5.zip -d data/m5
       - name: Run Gate-0.5
-        run: python scripts/run_gate05.py --data-dir data/m5 --out-dir results
+        run: PYTHONPATH=. python scripts/run_gate05.py --data-dir data/m5 --out-dir results
       - name: Upload Gate-0.5 results
         uses: actions/upload-artifact@v4
         with:
